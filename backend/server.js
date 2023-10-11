@@ -11,7 +11,6 @@ process.on('uncaughtException', (err) => {
 
 dotenv.config();
 const app = require('./app');
-const razorpayService = require('./services/razorpay.service');
 
 const DB =
   process.env.NODE_ENV === 'development'

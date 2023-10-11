@@ -3,6 +3,7 @@ const { DateTime } = require('luxon');
 const { parkingDataLayer } = require('../data');
 const razorpayService = require('./razorpay.service');
 const iotService = require('./iot.service');
+const sseService = require('./sse.service');
 
 class ParkingService {
   constructor() {
@@ -82,6 +83,8 @@ class ParkingService {
           return { link: 'NOT_NEEDED' };
         }
 
+        sseService.sendEvent({ data: { url: link } });
+
         return { link };
       }
     }
@@ -94,7 +97,7 @@ class ParkingService {
       paymentId: id,
     });
 
-    iotService.displayQrCode({ link });
+    sseService.sendEvent({ data: { url: link } });
 
     return { link };
   }

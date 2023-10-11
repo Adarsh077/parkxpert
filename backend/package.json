@@ -20,7 +20,8 @@
     "luxon": "^3.4.3",
     "mongoose": "^5.13.3",
     "morgan": "^1.10.0",
-    "razorpay": "^2.9.2"
+    "razorpay": "^2.9.2",
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
     "eslint": "^7.31.0",
