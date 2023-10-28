@@ -1,9 +1,9 @@
 const { DateTime } = require('luxon');
 
 const { parkingDataLayer } = require('../data');
-const razorpayService = require('./razorpay.service');
 const iotService = require('./iot.service');
 const sseService = require('./sse.service');
+const stripeService = require('./stripe.service');
 
 class ParkingService {
   constructor() {
@@ -72,7 +72,7 @@ class ParkingService {
     }
 
     if (parking.paymentId) {
-      const paymentResponse = await razorpayService.getPaymentLinkDetails({
+      const paymentResponse = await stripeService.getPaymentLinkDetails({
         id: parking.paymentId,
       });
 
@@ -89,7 +89,7 @@ class ParkingService {
       }
     }
 
-    const { link, id } = await razorpayService.createPaymentLink({
+    const { link, id } = await stripeService.createPaymentLink({
       amount: totalAmount,
     });
 
@@ -103,7 +103,7 @@ class ParkingService {
   }
 
   async handlePaymentSuccess({ id }) {
-    const paymentResponse = await razorpayService.getPaymentLinkDetails({
+    const paymentResponse = await stripeService.getPaymentLinkDetails({
       id: id,
     });
 

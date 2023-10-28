@@ -13,9 +13,14 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 app.use(cors());
-app.use(express.json());
 
-app.post('/webhook', parkingController.webhook);
+app.post(
+  '/webhook',
+  express.raw({ type: 'application/json' }),
+  parkingController.webhook
+);
+
+app.use(express.json());
 
 /* Routes 🎯 */
 app.use('/', require('./routes'));
