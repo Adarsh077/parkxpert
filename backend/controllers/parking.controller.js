@@ -17,6 +17,10 @@ exports.exitCar = catchAsync(async (req, res) => {
     carId,
   });
 
+  if (message) {
+    return res.status(403).send('NOT_ENTERED');
+  }
+
   res.send({
     status: 'success',
     body: { link, message },
