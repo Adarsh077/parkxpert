@@ -1,4 +1,3 @@
-const { validateWebhookSignature } = require('razorpay');
 const { parkingService, stripeService } = require('../services');
 const { catchAsync } = require('../utils');
 
@@ -29,7 +28,6 @@ exports.exitCar = catchAsync(async (req, res) => {
 
 exports.webhook = catchAsync(async (req, res) => {
   const sig = req.headers['stripe-signature'];
-  console.log(req.body);
   const event = await stripeService.constructEvent(
     req.body,
     sig,
@@ -42,4 +40,28 @@ exports.webhook = catchAsync(async (req, res) => {
     return res.send({ status: 'ok' });
   }
   res.status(401).send({ status: 'error' });
+});
+
+exports.generateDummyData = catchAsync(async (req, res) => {
+  const { dummyData } = await parkingService.generateDummyData();
+
+  res.send({ dummyData });
+});
+
+exports.analytics = catchAsync(async (req, res) => {
+  const {
+    dailyTotalRevenueTime,
+    dailyTotalParkingTime,
+    groupedByDay,
+    weeklyCount,
+    hourlyCount,
+  } = await parkingService.analytics();
+
+  res.send({
+    dailyTotalRevenueTime,
+    dailyTotalParkingTime,
+    groupedByDay,
+    hourlyCount,
+    weeklyCount,
+  });
 });

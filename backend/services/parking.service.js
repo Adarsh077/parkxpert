@@ -1,4 +1,7 @@
+/* eslint-disable no-restricted-syntax */
+const moment = require('moment');
 const { DateTime } = require('luxon');
+const _ = require('lodash');
 
 const { parkingDataLayer } = require('../data');
 const iotService = require('./iot.service');
@@ -120,6 +123,98 @@ class ParkingService {
 
       iotService.openExitBarricate();
     }
+  }
+
+  async generateDummyData() {
+    const { dummyData } = await parkingDataLayer.generateDummyData();
+    return { dummyData };
+  }
+
+  async analytics() {
+    const parkings = await parkingDataLayer.find();
+
+    const groupedByWeek = _.groupBy(parkings, (parking) => {
+      return `Week ${moment(parking.entryTimestamp).week()}`;
+    });
+
+    const weeklyCount = [];
+    for (const groupKey of Object.keys(groupedByWeek)) {
+      weeklyCount.push({
+        label: groupKey,
+        value: groupedByWeek[groupKey].length,
+      });
+    }
+
+    const groupedByHour = _.groupBy(
+      parkings.filter(
+        (parking) =>
+          new Date(parking.entryTimestamp) >
+          moment().subtract(4, 'hours').toDate()
+      ),
+      (parking) => {
+        return moment(new Date(parking.entryTimestamp)).local().format('HH:00');
+      }
+    );
+
+    const hourlyCount = [];
+    for (const groupKey of Object.keys(groupedByHour)) {
+      hourlyCount.push({
+        label: groupKey,
+        value: groupedByHour[groupKey].length,
+      });
+    }
+
+    const groupedByDay = _.groupBy(parkings, (parking) => {
+      return `${moment(parking.entryTimestamp).date()}/${
+        moment(parking.entryTimestamp).month() + 1
+      }`;
+    });
+
+    const dailyTotalParkingTime = Object.keys(groupedByDay).map((day) => {
+      const parkingsOfTheDay = groupedByDay[day];
+
+      let sumOfParkingTime = 0;
+
+      for (const parking of parkingsOfTheDay) {
+        parking.exitTimestamp = parking.exitTimestamp || moment().toDate();
+        const minutesDifference = moment(parking.exitTimestamp).diff(
+          parking.entryTimestamp,
+          'minutes'
+        );
+
+        sumOfParkingTime += minutesDifference;
+      }
+
+      return {
+        label: day,
+        value: sumOfParkingTime > 0 ? sumOfParkingTime : 0,
+      };
+    });
+
+    const dailyTotalRevenueTime = Object.keys(groupedByDay).map((day) => {
+      const parkingsOfTheDay = groupedByDay[day];
+
+      let sumOfParkingRevenue = 0;
+
+      for (const parking of parkingsOfTheDay) {
+        // eslint-disable-next-line no-continue
+        if (!parking.amount) continue;
+
+        sumOfParkingRevenue += parking.amount;
+      }
+
+      return {
+        label: day,
+        value: sumOfParkingRevenue > 0 ? sumOfParkingRevenue : 0,
+      };
+    });
+
+    return {
+      dailyTotalRevenueTime,
+      dailyTotalParkingTime,
+      hourlyCount,
+      weeklyCount,
+    };
   }
 }
 
