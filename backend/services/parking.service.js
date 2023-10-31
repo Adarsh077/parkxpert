@@ -210,8 +210,8 @@ class ParkingService {
     });
 
     return {
-      dailyTotalRevenueTime,
-      dailyTotalParkingTime,
+      dailyTotalRevenueTime: dailyTotalRevenueTime.slice(-4),
+      dailyTotalParkingTime: dailyTotalParkingTime.slice(-4),
       hourlyCount,
       weeklyCount,
     };
